@@ -143,6 +143,49 @@ class KnowledgeBase(object):
         ####################################################
         # Student code goes here
 
+        #Easy Failure Cases
+        if (not isinstance(fact_or_rule, Rule)) and (not isinstance(fact_or_rule, Fact)):
+            return False
+        
+        if isinstance(fact_or_rule, Fact): 
+            if fact_or_rule not in self.facts:
+                return 'Fact is not in the KB\n'
+            else:
+                return self.kb_explain_helper(self._get_fact(fact_or_rule), 0)
+
+        if isinstance(fact_or_rule, Rule):
+            if fact_or_rule not in self.rules:
+                return 'Rule is not in the KB\n'
+            else:
+                return self.kb_explain_helper(self._get_rule(fact_or_rule), 0)
+    
+    def kb_explain_helper(self, fact_or_rule, indentlevel):
+        output = ''
+
+        #Called fact_or_rule
+        if isinstance(fact_or_rule, Fact): 
+            output += 'fact: ' + str(fact_or_rule.statement)
+        if isinstance(fact_or_rule, Rule):
+            filler = str(fact_or_rule.lhs[0])
+            for statements in fact_or_rule.lhs[1:]:
+                filler += ', ' + str(statements)
+            output += 'rule: (' + filler + ') -> ' + str(fact_or_rule.rhs)
+        if fact_or_rule.asserted:
+            output += ' ASSERTED'
+        output += '\n'
+        
+        #Support information
+        for supports in fact_or_rule.supported_by:
+            output += '  ' * (indentlevel + 1) + 'SUPPORTED BY\n'
+            for indiv in supports:
+                output += '  ' * (indentlevel +2) + self.kb_explain_helper(indiv, indentlevel +2)
+        
+        return output
+
+
+
+
+
 
 class InferenceEngine(object):
     def fc_infer(self, fact, rule, kb):
